@@ -13,7 +13,6 @@ import UIKit
 struct ImageStorage {
     static let shared = ImageStorage()
     
-    
     let folder: URL = {
         let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let url = base.appendingPathComponent("Images", isDirectory: true)
@@ -22,23 +21,14 @@ struct ImageStorage {
     }()
     
     
-    func save(image: UIImage, id: UUID) throws -> String {
-        let url = folder.appendingPathComponent("\(id.uuidString).jpg")
-        guard let data = image.jpegData(compressionQuality: 0.85) else {
-            throw NSError(domain: "ImageStorage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not encode image to JPEG"])
+    func save(imageData: Data?, id: UUID) throws -> String {
+        let url = folder.appendingPathComponent("\(id.uuidString).png")
+        guard let imageData, let data = UIImage(data: imageData)?.pngData() else {
+            throw NSError(domain: "ImageStorage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not encode image to PNG"])
         }
-        try data.write(to: url, options: .atomic)
+        try data.write(to: url, options: .atomicWrite)
         return url.lastPathComponent
     }
-    
-//    func save(image: UIImage, id: UUID) throws -> String {
-//        let url = folder.appendingPathComponent("\(id.uuidString).jpg")
-//        guard let data = image.jpegData(compressionQuality: 0.85) else {
-//            throw NSError(domain: "ImageStorage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not encode image to JPEG"])
-//        }
-//        try data.write(to: url, options: .atomic)
-//        return url.lastPathComponent
-//    }
     
     func loadImage(named filename: String) -> UIImage? {
         let url = folder.appendingPathComponent(filename)
@@ -53,3 +43,4 @@ struct ImageStorage {
         }
     }
 }
+

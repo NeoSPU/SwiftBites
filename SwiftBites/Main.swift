@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 /// The main view that appears when the app is launched.
 struct ContentView: View {
@@ -23,8 +24,9 @@ struct ContentView: View {
                 }
         }
         .onAppear {
+            // Storage is synchronous; load first, then import mock data predictably
             storage.load()
-            
+            MockDataLoader(storage: storage).importMockData(context: modelContext)
         }
     }
 }
