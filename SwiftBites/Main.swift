@@ -3,9 +3,7 @@ import SwiftUI
 /// The main view that appears when the app is launched.
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-
-//    @Environment(\.storage) private var storage
-    //    @Environment(\.modelContext) private var context
+    @Environment(\.storage) private var storage
     
     var body: some View {
         TabView {
@@ -25,34 +23,8 @@ struct ContentView: View {
                 }
         }
         .onAppear {
-//            storage.load()
+            storage.load()
+            
         }
     }
 }
-
-
-//var body: some View {
-//    NavigationView {
-//        Text("SwiftBites — Home")
-//            .padding()
-//            .navigationTitle("SwiftBites")
-//            .task {
-//                // supply your real mock array here or load from bundled json
-//                let mockCategories: [MockCategory] = [] // fill in
-//                importMockDataIfNeeded(context: context, mockCategories: mockCategories)
-//            }
-//    }
-//}
-
-//
-//struct ContentView: View {
-//    @Environment(\.modelContext) private var context
-//
-//    var body: some View {
-//        HomeView()
-//            .onAppear {
-//                importMockData(context: context)
-//            }
-//    }
-//}
-

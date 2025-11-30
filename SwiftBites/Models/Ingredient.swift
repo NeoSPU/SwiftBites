@@ -18,4 +18,5 @@ final class Ingredient {
         self.id = id
         self.name = name
     }
+    
 }

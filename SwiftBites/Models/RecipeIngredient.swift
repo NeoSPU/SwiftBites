@@ -11,8 +11,6 @@ import SwiftData
 
 @Model
 final class RecipeIngredient {
-    @Attribute(.unique) var id: UUID
-    
     // Ingredient is global
     @Relationship(deleteRule: .nullify)
     var ingredient: Ingredient
@@ -23,8 +21,7 @@ final class RecipeIngredient {
     
     var quantity: String
 
-    init(id: UUID = UUID(), ingredient: Ingredient, recipe: Recipe, quantity: String = "") {
-        self.id = id
+    init(ingredient: Ingredient, recipe: Recipe, quantity: String = "") {
         self.ingredient = ingredient
         self.recipe = recipe
         self.quantity = quantity

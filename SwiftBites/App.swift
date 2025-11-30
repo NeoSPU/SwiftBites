@@ -22,8 +22,8 @@ struct SwiftBitesApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(sharedModelContainer)
-            //                .environment(\.storage, Storage())
+//                .modelContainer(sharedModelContainer)
+                            .environment(\.storage, Storage())
         }
     }
 }

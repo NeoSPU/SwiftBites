@@ -20,11 +20,8 @@ final class Recipe {
     // store filename; image saved externally
     var imageData: String?
     
-    // children
-    @Relationship
+    // relationships
     var category: Category?
-    
-    @Relationship
     var ingredients: [RecipeIngredient] = []
     
     init(

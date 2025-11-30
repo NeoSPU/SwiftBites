@@ -31,6 +31,14 @@ struct ImageStorage {
         return url.lastPathComponent
     }
     
+//    func save(image: UIImage, id: UUID) throws -> String {
+//        let url = folder.appendingPathComponent("\(id.uuidString).jpg")
+//        guard let data = image.jpegData(compressionQuality: 0.85) else {
+//            throw NSError(domain: "ImageStorage", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not encode image to JPEG"])
+//        }
+//        try data.write(to: url, options: .atomic)
+//        return url.lastPathComponent
+//    }
     
     func loadImage(named filename: String) -> UIImage? {
         let url = folder.appendingPathComponent(filename)

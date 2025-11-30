@@ -7,181 +7,191 @@
 // ========================================================
 
 import Foundation
+import SwiftUI
+import SwiftData
 
-struct MockDataLoader {}
+struct MockDataLoader {
     
-//    // Import function
-//    func importMockDataIfNeeded(context: ModelContext, mockCategories: [MockCategory]) {
-//    // Avoid repeated imports
-//    let existing: [Recipe] = (try? context.fetch(FetchDescriptor<Recipe>())) ?? []
-//    if !existing.isEmpty { return }
-//
-//
-//    for mockCat in mockCategories {
-//    let cat = Category(name: mockCat.name)
-//    context.insert(cat)
-//
-//
-//    for mockRecipe in mockCat.recipes {
-//    // upsert Ingredients to global list to prevent duplicates
-//    var riObjects: [RecipeIngredient] = []
-//    for mockRI in mockRecipe.ingredients {
-//    // find existing Ingredient by name
-//    let fd = FetchDescriptor<Ingredient>(predicate: #Predicate { (i: Ingredient) -> Bool in
-//    i.name.lowercased() == mockRI.ingredient.name.lowercased()
-//    })
-//    let found: [Ingredient] = (try? context.fetch(fd)) ?? []
-//
-//
-//    let ing: Ingredient
-//    if let first = found.first {
-//    ing = first
-//    } else {
-//    ing = Ingredient(name: mockRI.ingredient.name)
-//    context.insert(ing)
-//    }
-//
-//
-//    let ri = RecipeIngredient(ingredient: ing, quantity: mockRI.quantity)
-//    riObjects.append(ri)
-//    }
-//
-//
-//    // Save image externally if present
-//    var imageFileName: String? = nil
-//    if let data = mockRecipe.imageData, let ui = UIImage(data: data) {
-//    let id = UUID()
-//    if let filename = try? ImageStorage.shared.save(image: ui, id: id) {
-//    imageFileName = filename
-//    }
-//    }
-//
-//
-//    let r = Recipe(
-//    name: mockRecipe.name,
-//    summary: mockRecipe.summary,
-//    category: cat,
-//    serving: mockRecipe.serving,
-//    time: mockRecipe.time,
-//    ingredients: riObjects,
-//    instructions: mockRecipe.instructions,
-//    imageFile: imageFileName
-//    )
-//
-//
-//    context.insert(r)
-//    }
-//    }
-//
-//
-//    try? context.save()
-//    }
-    // Import function
-//    func importMockDataIfNeeded(context: ModelContext, mockCategories: [MockCategory]) {
-//    // Avoid repeated imports
-//    let existing: [Recipe] = (try? context.fetch(FetchDescriptor<Recipe>())) ?? []
-//    if !existing.isEmpty { return }
-//
-//
-//    for mockCat in mockCategories {
-//    let cat = Category(name: mockCat.name)
-//    context.insert(cat)
-//
-//
-//    for mockRecipe in mockCat.recipes {
-//    // upsert Ingredients to global list to prevent duplicates
-//    var riObjects: [RecipeIngredient] = []
-//    for mockRI in mockRecipe.ingredients {
-//    // find existing Ingredient by name
-//    let fd = FetchDescriptor<Ingredient>(predicate: #Predicate { (i: Ingredient) -> Bool in
-//    i.name.lowercased() == mockRI.ingredient.name.lowercased()
-//    })
-//    let found: [Ingredient] = (try? context.fetch(fd)) ?? []
-//
-//
-//    let ing: Ingredient
-//    if let first = found.first {
-//    ing = first
-//    } else {
-//    ing = Ingredient(name: mockRI.ingredient.name)
-//    context.insert(ing)
-//    }
-//
-//
-//    let ri = RecipeIngredient(ingredient: ing, quantity: mockRI.quantity)
-//    riObjects.append(ri)
-//    }
-//
-//
-//    // Save image externally if present
-//    var imageFileName: String? = nil
-//    if let data = mockRecipe.imageData, let ui = UIImage(data: data) {
-//    let id = UUID()
-//    if let filename = try? ImageStorage.shared.save(image: ui, id: id) {
-//    imageFileName = filename
-//    }
-//    }
-//
-//
-//    let r = Recipe(
-//    name: mockRecipe.name,
-//    summary: mockRecipe.summary,
-//    category: cat,
-//    serving: mockRecipe.serving,
-//    time: mockRecipe.time,
-//    ingredients: riObjects,
-//    instructions: mockRecipe.instructions,
-//    imageFile: imageFileName
-//    )
-//
-//
-//    context.insert(r)
-//    }
-//    }
-//
-//
-//    try? context.save()
-//    }
-//}
-
-
-//func importMockData(context: ModelContext) {
-//    // Проверь: если БД уже содержит рецепты — не импортируем
-//    let existingRecipes = try? context.fetch(FetchDescriptor<Recipe>())
-//    if (existingRecipes?.isEmpty == false) { return }
-//
-//    // Здесь ваша логика заполнения Mock-данными
-//    for mockCategory in mockCategories {
+    @Environment(\.storage) private var storage
+    
+    func importMockData(context: ModelContext) {
+        // Если рецепты уже есть — выходим
+        let existing = try? context.fetch(FetchDescriptor<Recipe>())
+        if (existing?.isEmpty == false) { return }
+        
+        let mockCategories: [MockCategory] = storage.categories
+        // при необходимости:
+        // let mockIngredients: [MockIngredient] = storage.ingredients
+        // let mockRecipes: [MockRecipe] = storage.recipes
+        
+        // Кеши, чтобы не создавать дубликаты
+        var categoryCache: [String: Category] = [:]
+        var ingredientCache: [String: Ingredient] = [:]
+        
+        // Фабрика Category без рекурсий
+        func category(for name: String) -> Category {
+            if let cached = categoryCache[name] {
+                return cached
+            }
+            // Попробуем найти в базе (на случай повторного запуска импорта)
+            if let existing = try? context.fetch(
+                FetchDescriptor<Category>(predicate: #Predicate { $0.name == name })
+            ).first {
+                categoryCache[name] = existing
+                return existing
+            }
+            let new = Category(name: name)
+            context.insert(new)
+            categoryCache[name] = new
+            return new
+        }
+        
+        // Фабрика Ingredient
+        func ingredient(for name: String) -> Ingredient {
+            if let cached = ingredientCache[name] {
+                return cached
+            }
+            if let existing = try? context.fetch(
+                FetchDescriptor<Ingredient>(predicate: #Predicate { $0.name == name })
+            ).first {
+                ingredientCache[name] = existing
+                return existing
+            }
+            let new = Ingredient(name: name)
+            context.insert(new)
+            ingredientCache[name] = new
+            return new
+        }
 //        
-//        let cat = Category(name: mockCategory.name)
+//        // Маппинг MockRecipeIngredient → RecipeIngredient
+//        func mapRecipeIngredients(from mockItems: [MockRecipeIngredient]) -> [RecipeIngredient] {
+//            mockItems.map { m in
+//                let ing = ingredient(for: m.ingredient.name)
+//                if let rec = try? context.fetch(
+//                    FetchDescriptor<Recipe>(predicate: #Predicate { $0.ingredients == mockItems. })
+//                ).first {
+//                    ingredientCache[name] = existing
+//                    return existing
+//                }
+//                return RecipeIngredient(ingredient: ing, recipe: nil, quantity: m.quantity)
+//            }
+//        }
+//        
+    }
+    
+    
+    //    func importMockData(context: ModelContext) {
+    //        // Check: if the database already contains recipes, do not import them.
+    //        let existingRecipes = try? context.fetch(FetchDescriptor<Recipe>())
+    //        if (existingRecipes?.isEmpty == false) { return }
+    //
+    //        let mockRecipes: [MockRecipe] = storage.recipes
+    //        let mockCategories: [MockCategory] = storage.categories
+    //        let mockIngredients: [MockIngredient] = storage.ingredients
+    //
+    //        for mockCategory in mockCategories {
+    //            let cat = Category()
+    //        }
+    //
+    //        // Here is your logic for filling with Mock data.
+    //        for mockCategory in mockCategories {
+    //
+    //            let cat = Category(name: mockCategory.name)
+    //
+    //            for mockRecipe in mockCategory.recipes {
+    //                // Ingredient mapping
+    //                let ingredients: [RecipeIngredient] = mockRecipe.ingredients.map { mockRI in
+    //
+    //                    // Глобальный Ingredient
+    //                    let ingredient = Ingredient(name: mockRI.ingredient.name)
+    //
+    //                    return RecipeIngredient(
+    //                        ingredient: ingredient,
+    //                        quantity: mockRI.quantity
+    //                    )
+    //                }
+    //
+    //                let recipe = Recipe(
+    //                    name: mockRecipe.name,
+    //                    summary: mockRecipe.summary,
+    //                    category: cat,
+    //                    serving: mockRecipe.serving,
+    //                    time: mockRecipe.time,
+    //                    ingredients: ingredients,
+    //                    instructions: mockRecipe.instructions,
+    //                    imageData: mockRecipe.imageData
+    //                )
+    //
+    //                context.insert(recipe)
+    //            }
+    //
+    //            context.insert(cat)
+    //        }
+    //
+    //        func createCategory(from mockCategory: MockCategory) -> Category {
+    //            let recipes: [Recipe] = mockCategory.recipes.map { MockRecipe in
+    //
+    //            }
+    //            let cat: Category = Category(name: mockCategory.name, recipes: mockCategory.recipes)
+    //            return cat
+    //        }
+    //
+    //        func createRecipe(from mockRecipe: MockRecipe) -> Recipe {
+    //            let rec: Recipe = Recipe(
+    //                name: mockRecipe.name,
+    //                summary: mockRecipe.summary,
+    //                category: cat,
+    //                serving: mockRecipe.serving,
+    //                time: mockRecipe.time,
+    //                ingredients: ingredients,
+    //                instructions: mockRecipe.instructions,
+    //                imageData: mockRecipe.imageData
+    //            )
+    //            return rec
+    //
+    //        }
+}
+
+//    func importMockData(context: ModelContext) {
+//        // Если рецепты уже есть — выходим
+//        let existing = try? context.fetch(FetchDescriptor<Recipe>())
+//        if (existing?.isEmpty == false) { return }
 //
-//        for mockRecipe in mockCategory.recipes {
-//            // Ingredient mapping
-//            let ingredients: [RecipeIngredient] = mockRecipe.ingredients.map { mockRI in
-//                
-//                // Глобальный Ingredient
-//                let ingredient = Ingredient(name: mockRI.ingredient.name)
+//        let mockCategories: [MockCategory] = storage.categories
+//        // при необходимости:
+//        // let mockIngredients: [MockIngredient] = storage.ingredients
+//        // let mockRecipes: [MockRecipe] = storage.recipes
 //
-//                return RecipeIngredient(
-//                    ingredient: ingredient,
-//                    quantity: mockRI.quantity
-//                )
+//
+//        // Кеши, чтобы не создавать дубликаты
+//            var categoryCache: [String: Category] = [:]
+//            var ingredientCache: [String: Ingredient] = [:]
+//
+//        func category(for name: String) -> Category {
+//                if let cached = categoryCache[name] {
+//                    return cached
+//                }
+//                // Попробуем найти в базе (на случай повторного запуска импорта)
+//                if let existing = try? context.fetch(
+//                    FetchDescriptor<Category>(predicate: #Predicate { $0.name == name })
+//                ).first {
+//                    categoryCache[name] = existing
+//                    return existing
+//                }
+//                let new = Category(name: name)
+//                context.insert(new)
+//                categoryCache[name] = new
+//                return new
 //            }
 //
-//            let recipe = Recipe(
-//                name: mockRecipe.name,
-//                summary: mockRecipe.summary,
-//                category: cat,
-//                serving: mockRecipe.serving,
-//                time: mockRecipe.time,
-//                ingredients: ingredients,
-//                instructions: mockRecipe.instructions,
-//                imageData: mockRecipe.imageData
-//            )
+//        //Функция сохранения изображения (пример):
 //
-//            context.insert(recipe)
-//        }
-//
-//        context.insert(cat)
-//    }
-//}
+//        func saveMockImageIfNeeded(_ data: Data?) -> String? {
+//                guard let data else { return nil }
+//                let fileName = UUID().uuidString + ".jpg"
+//                // Сохраните data в ваш ImageStorage и верните fileName
+//                // try? ImageStorage.shared.save(data: data, named: fileName)
+//                return fileName
+//            }
+
+
