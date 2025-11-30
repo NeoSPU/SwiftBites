@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CategorySection: View {
-  let category: MockCategory
+  let category: Category
 
   // MARK: - Body
 
@@ -33,10 +33,10 @@ struct CategorySection: View {
   var list: some View {
     ScrollView(.horizontal) {
       LazyHStack(spacing: 0) {
-        ForEach(category.recipes, id: \.name) { recipe in
-          RecipeCell(recipe: recipe)
-            .containerRelativeFrame(.horizontal, count: 12, span: 11, spacing: 0)
-        }
+//        ForEach(category.recipes, id: \.name) { recipe in
+//          RecipeCell(recipe: recipe)
+//            .containerRelativeFrame(.horizontal, count: 12, span: 11, spacing: 0)
+//        }
       }
       .scrollTargetLayout()
     }
