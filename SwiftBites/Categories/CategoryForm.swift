@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct CategoryForm: View {
-    @Environment(\.modelContext) private var modelContext
     
     enum Mode: Hashable {
         case add
@@ -25,7 +24,7 @@ struct CategoryForm: View {
     private let title: String
     @State private var name: String
     @State private var error: Error?
-    @Environment(\.storage) private var storage
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isNameFocused: Bool
     
@@ -85,7 +84,7 @@ struct CategoryForm: View {
             switch mode {
             case .add:
                 try PersistenceService(modelContext: modelContext).addCategory(name: name)
-            case .edit(let category):
+            case .edit(_):
                 try PersistenceService(modelContext: modelContext).updateCategory(name: name)
             }
             dismiss()

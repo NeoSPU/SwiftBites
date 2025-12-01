@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 struct CategoriesView: View {
-    @Environment(\.storage) private var storage
     @State private var query = ""
     @Query private var categories: [Category]
     

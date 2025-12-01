@@ -21,7 +21,8 @@ final class RecipeIngredient {
     
     var quantity: String
 
-    init(ingredient: Ingredient, recipe: Recipe, quantity: String = "") {
+    // Primary initializer that allows `recipe` to be optional
+    init(ingredient: Ingredient, recipe: Recipe? = nil, quantity: String = "") {
         self.ingredient = ingredient
         self.recipe = recipe
         self.quantity = quantity

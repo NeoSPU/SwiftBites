@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RecipeCell: View {
-  let recipe: MockRecipe
+  let recipe: Recipe
 
   // MARK: - Body
 
@@ -49,11 +49,18 @@ struct RecipeCell: View {
   }
 
   private var innerImage: Image {
-    if let data = recipe.imageData, let uiImage = UIImage(data: data) {
-      Image(uiImage: uiImage)
-    } else {
-      Image("recipePlaceholder")
+    // Support both Data and Base64-encoded String storage for image data
+    if let anyData = recipe.imageData {
+      // Attempt to interpret as Data first
+      if let data = anyData as? Data, let uiImage = UIImage(data: data) {
+        return Image(uiImage: uiImage)
+      }
+      // Then as Base64-encoded String
+      if let base64 = anyData as? String, let data = Data(base64Encoded: base64), let uiImage = UIImage(data: data) {
+        return Image(uiImage: uiImage)
+      }
     }
+    return Image("recipePlaceholder")
   }
 
   // MARK: - Helpers
@@ -69,3 +76,4 @@ struct RecipeCell: View {
       .clipShape(Capsule())
   }
 }
+
