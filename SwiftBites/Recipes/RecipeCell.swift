@@ -1,79 +1,72 @@
 import SwiftUI
 
 struct RecipeCell: View {
-  let recipe: Recipe
-
-  // MARK: - Body
-
-  var body: some View {
-    NavigationLink(value: RecipeForm.Mode.edit(recipe)) {
-      content
-    }
-    .buttonStyle(.plain)
-  }
-
-  // MARK: - Views
-
-  private var content: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      backgroundImage
-      labels
-    }
-    .padding(.horizontal)
-  }
-
-  private var labels: some View {
-    VStack(alignment: .leading, spacing: 5) {
-      Text(recipe.name)
-        .font(.headline)
-      Text(recipe.summary)
-        .font(.subheadline)
-      HStack(alignment: .center, spacing: 5) {
-        if let category = recipe.category {
-          tag(title: category.name, icon: "tag")
+    let recipe: Recipe
+    
+    // MARK: - Body
+    
+    var body: some View {
+        NavigationLink(value: RecipeForm.Mode.edit(recipe)) {
+            content
         }
-        tag(title: "\(recipe.time)m", icon: "clock")
-        tag(title: "\(recipe.serving)p", icon: "person")
-      }
-      .padding(.top, 10)
-      .padding(.bottom, 20)
+        .buttonStyle(.plain)
     }
-  }
-
-  private var backgroundImage: some View {
-    innerImage
-      .resizable()
-      .scaledToFill()
-      .frame(maxHeight: 150)
-      .clipShape(RoundedRectangle(cornerRadius: 10.0))
-  }
-
-  private var innerImage: Image {
-    // Support both Data and Base64-encoded String storage for image data
-    if let anyData = recipe.imageData {
-      // Attempt to interpret as Data first
-      if let data = anyData as? Data, let uiImage = UIImage(data: data) {
-        return Image(uiImage: uiImage)
-      }
-      // Then as Base64-encoded String
-      if let base64 = anyData as? String, let data = Data(base64Encoded: base64), let uiImage = UIImage(data: data) {
-        return Image(uiImage: uiImage)
-      }
+    
+    // MARK: - Views
+    
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            backgroundImage
+            labels
+        }
+        .padding(.horizontal)
     }
-    return Image("recipePlaceholder")
-  }
-
-  // MARK: - Helpers
-
-  private func tag(title: String, icon: String) -> some View {
-    Label(title, systemImage: icon)
-      .font(.caption2)
-      .bold()
-      .padding(.vertical, 5)
-      .padding(.horizontal, 10)
-      .background(Color.accent.opacity(0.1))
-      .foregroundStyle(.accent)
-      .clipShape(Capsule())
-  }
+    
+    private var labels: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(recipe.name)
+                .font(.headline)
+            Text(recipe.summary)
+                .font(.subheadline)
+            HStack(alignment: .center, spacing: 5) {
+                if let category = recipe.category {
+                    tag(title: category.name, icon: "tag")
+                }
+                tag(title: "\(recipe.time)m", icon: "clock")
+                tag(title: "\(recipe.serving)p", icon: "person")
+            }
+            .padding(.top, 10)
+            .padding(.bottom, 20)
+        }
+    }
+    
+    private var backgroundImage: some View {
+        innerImage
+            .resizable()
+            .scaledToFill()
+            .frame(maxHeight: 150)
+            .clipShape(RoundedRectangle(cornerRadius: 10.0))
+    }
+    
+    private var innerImage: Image {
+        // Support both Data and Base64-encoded String storage for image data
+        if let imageFile = recipe.imageData, let uiImage = ImageStorage().loadImage(named: imageFile) {
+            return Image(uiImage: uiImage)
+        }
+        return Image("recipePlaceholder")
+    }
+    
+    // MARK: - Helpers
+    
+    private func tag(title: String, icon: String) -> some View {
+        Label(title, systemImage: icon)
+            .font(.caption2)
+            .bold()
+            .padding(.vertical, 5)
+            .padding(.horizontal, 10)
+            .background(Color.accent.opacity(0.1))
+            .foregroundStyle(.accent)
+            .clipShape(Capsule())
+    }
 }
 
