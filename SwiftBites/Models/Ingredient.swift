@@ -13,10 +13,12 @@ import SwiftData
 final class Ingredient {
     @Attribute(.unique) var id: UUID
     var name: String
-    
-    init(id: UUID = UUID(), name: String = "") {
+    var isAvailable: Bool
+
+    init(id: UUID = UUID(), name: String = "", isAvailable: Bool = true) {
         self.id = id
         self.name = name
+        self.isAvailable = isAvailable
     }
     
 }
