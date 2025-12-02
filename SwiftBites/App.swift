@@ -23,7 +23,6 @@ struct SwiftBitesApp: App {
         WindowGroup {
             ContentView()
                 .modelContainer(sharedModelContainer)
-//                .environment(\.storage, Storage())
         }
     }
 }

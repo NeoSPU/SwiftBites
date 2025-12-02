@@ -24,9 +24,11 @@ struct ContentView: View {
                 }
         }
         .onAppear {
-            // Storage is synchronous; load first, then import mock data predictably
+            // Use the commented code to import mock data from storage.
 //            storage.load()
-//            MockDataLoader(storage: storage).importMockData(context: modelContext)
+//            Task {
+//                await MockDataLoader(storage: storage).importMockData(context: modelContext)
+//            }
         }
     }
 }
