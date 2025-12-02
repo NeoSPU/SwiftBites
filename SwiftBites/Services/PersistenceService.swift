@@ -46,7 +46,6 @@ final class PersistenceService {
     /// Creation method for Category
     @discardableResult
     func addCategory(name: String) throws -> Category {
-        // Enforce uniqueness by checking for an existing category with the same name
         let descriptor = FetchDescriptor<Category>(
             predicate: #Predicate { $0.name == name }
         )
@@ -56,6 +55,7 @@ final class PersistenceService {
         }
         let newCategory = Category(name: name)
         modelContext.insert(newCategory)
+        try modelContext.save()
         return newCategory
     }
     
@@ -64,7 +64,6 @@ final class PersistenceService {
         let descriptor = FetchDescriptor<Category>(
             predicate: #Predicate { $0.name == name }
         )
-        // Perform the fetch (this can throw), then unwrap the first result or throw not found
         let results = try modelContext.fetch(descriptor)
         if let category = results.first {
             return category
@@ -76,28 +75,24 @@ final class PersistenceService {
     /// Update method for Category
     @discardableResult
     func updateCategory(name: String) throws -> Category {
-        // Enforce uniqueness by checking for an existing category with the same name
         let descriptor = FetchDescriptor<Category>(
             predicate: #Predicate { $0.name == name }
         )
-        if let _ = try? modelContext.fetch(descriptor).first {
-            let newCategory = Category(name: name)
-            modelContext.insert(newCategory)
-            return newCategory
-        } else {
+        guard let category = try modelContext.fetch(descriptor).first else {
             throw PersistenceError.categoryNotFound(name: name)
         }
+        return category
     }
     
     /// Delete method for Category
     @discardableResult
     func deleteCategory(name: String) throws -> Bool {
-        // Fetch the category with the given name and delete it if found
         let descriptor = FetchDescriptor<Category>(
             predicate: #Predicate { $0.name == name }
         )
         if let category = try modelContext.fetch(descriptor).first {
             modelContext.delete(category)
+            try modelContext.save()
             return true
         } else {
             throw PersistenceError.categoryNotFound(name: name)
@@ -108,7 +103,6 @@ final class PersistenceService {
     /// Creation method for Ingredient
     @discardableResult
     func addIngredient(name: String) throws -> Ingredient {
-        // Enforce uniqueness by checking for an existing ingredient with the same name
         let descriptor = FetchDescriptor<Ingredient>(
             predicate: #Predicate { $0.name == name }
         )
@@ -118,6 +112,7 @@ final class PersistenceService {
         }
         let newIngredient = Ingredient(name: name)
         modelContext.insert(newIngredient)
+        try modelContext.save()
         return newIngredient
     }
     
@@ -126,7 +121,6 @@ final class PersistenceService {
         let descriptor = FetchDescriptor<Ingredient>(
             predicate: #Predicate { $0.name == name }
         )
-        // Perform the fetch (this can throw), then unwrap the first result or throw not found
         let results = try modelContext.fetch(descriptor)
         if let ingredient = results.first {
             return ingredient
@@ -138,17 +132,13 @@ final class PersistenceService {
     /// Update method for Ingredient
     @discardableResult
     func updateIngredient(name: String) throws -> Ingredient {
-        // Enforce uniqueness by checking for an existing ingredient with the same name
         let descriptor = FetchDescriptor<Ingredient>(
             predicate: #Predicate { $0.name == name }
         )
-        if let _ = try? modelContext.fetch(descriptor).first {
-            let newIngredient = Ingredient(name: name)
-            modelContext.insert(newIngredient)
-            return newIngredient
-        } else {
+        guard let ingredient = try modelContext.fetch(descriptor).first else {
             throw PersistenceError.ingredientNotFound(name: name)
         }
+        return ingredient
     }
     
     /// Delete method for Ingredient
@@ -159,6 +149,7 @@ final class PersistenceService {
         )
         if let ingredient = try modelContext.fetch(descriptor).first {
             modelContext.delete(ingredient)
+            try modelContext.save()
             return true
         } else {
             throw PersistenceError.ingredientNotFound(name: name)
@@ -176,8 +167,7 @@ final class PersistenceService {
                    time: Int = 5,
                    ingredients: [RecipeIngredient] = [],
                    instructions: String = "",
-                   imageData: Data? = nil) throws -> Recipe {
-        // Uniqueness check
+                   imageData: Data? = nil) async throws -> Recipe {
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { $0.name == name }
         )
@@ -186,10 +176,8 @@ final class PersistenceService {
             throw PersistenceError.recipeAlreadyExists(name: name)
         }
 
-        // Save image data to disk and store file name in model
-        let imageFileName: String? = try? ImageStorage.shared.save(imageData: imageData, id: UUID())
+        let imageFileName: String? = try? await ImageStorage.shared.save(imageData: imageData, id: UUID())
 
-        // Create empty recipe first (for bidirectional linkage)
         let newRecipe = Recipe(
             name: name,
             summary: summary,
@@ -201,11 +189,10 @@ final class PersistenceService {
             imageData: imageFileName
         )
         modelContext.insert(newRecipe)
+        try modelContext.save()
 
-        // Rebuild ingredients bound to this recipe instance
         if !ingredients.isEmpty {
             let bound = ingredients.map { item in
-                // Ensure each RecipeIngredient is tied to this recipe
                 if item.recipe === newRecipe { return item }
                 return RecipeIngredient(ingredient: item.ingredient, recipe: newRecipe, quantity: item.quantity)
             }
@@ -220,7 +207,6 @@ final class PersistenceService {
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { $0.name == name }
         )
-        // Perform the fetch (this can throw), then unwrap the first result or throw not found
         let results = try modelContext.fetch(descriptor)
         if let recipe = results.first {
             return recipe
@@ -239,8 +225,7 @@ final class PersistenceService {
                       time: Int = 5,
                       ingredients: [RecipeIngredient] = [],
                       instructions: String = "",
-                      imageData: Data? = nil) throws -> Recipe {
-        // Fetch existing by id
+                      imageData: Data? = nil) async throws -> Recipe {
         let descriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { $0.id == id }
         )
@@ -248,7 +233,6 @@ final class PersistenceService {
             throw PersistenceError.recipeNotFound(name: name)
         }
 
-        // Ensure no duplicate name (other than self)
         let dupDescriptor = FetchDescriptor<Recipe>(
             predicate: #Predicate { $0.name == name && $0.id != id }
         )
@@ -256,7 +240,6 @@ final class PersistenceService {
             throw PersistenceError.recipeAlreadyExists(name: name)
         }
 
-        // Update fields
         recipe.name = name
         recipe.summary = summary
         recipe.category = category
@@ -264,19 +247,18 @@ final class PersistenceService {
         recipe.time = time
         recipe.instructions = instructions
 
-        // Handle image update (save new data if provided)
         if let imageData {
-            let imageFileName = try? ImageStorage.shared.save(imageData: imageData, id: UUID())
+            let imageFileName = try? await ImageStorage.shared.save(imageData: imageData, id: UUID())
             recipe.imageData = imageFileName
         }
 
-        // Rebuild ingredients bound to this recipe
         let rebuilt = ingredients.map { item in
             if item.recipe === recipe { return item }
             return RecipeIngredient(ingredient: item.ingredient, recipe: recipe, quantity: item.quantity)
         }
         recipe.ingredients = rebuilt
 
+        try modelContext.save()
         return recipe
     }
     
@@ -284,6 +266,7 @@ final class PersistenceService {
     @discardableResult
     func delete(_ recipe: Recipe) throws -> Bool {
         modelContext.delete(recipe)
+        try modelContext.save()
         return true
     }
     
@@ -294,6 +277,7 @@ final class PersistenceService {
         )
         if let recipe = try modelContext.fetch(descriptor).first {
             modelContext.delete(recipe)
+            try modelContext.save()
             return true
         } else {
             throw PersistenceError.recipeNotFound(name: name)

@@ -40,7 +40,14 @@ struct IngredientForm: View {
                 Button(
                     role: .destructive,
                     action: {
-                        delete(ingredient: ingredient)
+                        Task {
+                            do {
+                                try persistenceService.deleteIngredient(name: ingredient.name)
+                                await MainActor.run { dismiss() }
+                            } catch {
+                                await MainActor.run { self.error = error }
+                            }
+                        }
                     },
                     label: {
                         Text("Delete Ingredient")
@@ -68,16 +75,18 @@ struct IngredientForm: View {
     // MARK: - Actions
     
     private func save() {
-        do {
-            switch mode {
-            case .add:
-                try persistenceService.addIngredient(name: name)
-            case .edit(let ingredient):
-                try persistenceService.updateIngredient(name: name)
+        Task {
+            do {
+                switch mode {
+                case .add:
+                    try persistenceService.addIngredient(name: name)
+                case .edit(_):
+                    try persistenceService.updateIngredient(name: name)
+                }
+                await MainActor.run { dismiss() }
+            } catch {
+                await MainActor.run { self.error = error }
             }
-            dismiss()
-        } catch {
-            self.error = error
         }
     }
     
@@ -90,3 +99,4 @@ struct IngredientForm: View {
         }
     }
 }
+

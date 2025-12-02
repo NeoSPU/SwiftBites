@@ -71,25 +71,29 @@ struct CategoryForm: View {
     // MARK: - Data
     
     private func delete(category: Category) {
-        do {
-            try PersistenceService(modelContext: modelContext).deleteCategory(name: category.name)
-            dismiss()
-        } catch {
-            self.error = error
+        Task {
+            do {
+                try PersistenceService(modelContext: modelContext).deleteCategory(name: category.name)
+                await MainActor.run { dismiss() }
+            } catch {
+                await MainActor.run { self.error = error }
+            }
         }
     }
     
     private func save(name: String) {
-        do {
-            switch mode {
-            case .add:
-                try PersistenceService(modelContext: modelContext).addCategory(name: name)
-            case .edit(_):
-                try PersistenceService(modelContext: modelContext).updateCategory(name: name)
+        Task {
+            do {
+                switch mode {
+                case .add:
+                    try PersistenceService(modelContext: modelContext).addCategory(name: name)
+                case .edit(_):
+                    try PersistenceService(modelContext: modelContext).updateCategory(name: name)
+                }
+                await MainActor.run { dismiss() }
+            } catch {
+                await MainActor.run { self.error = error }
             }
-            dismiss()
-        } catch {
-            self.error = error
         }
     }
 }

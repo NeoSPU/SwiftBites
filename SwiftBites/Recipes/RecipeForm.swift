@@ -85,12 +85,11 @@ struct RecipeForm: View {
         .onChange(of: imageItem) { _, _ in
             Task {
                 if let data = try? await imageItem?.loadTransferable(type: Data.self) {
-                    // Save to disk and keep filename for the model
-                    if let file = try? ImageStorage.shared.save(imageData: data, id: UUID()) {
+                    if let file = try? await ImageStorage.shared.save(imageData: data, id: UUID()) {
                         imageFileName = file
                         imagePreviewData = data
                     } else {
-                        imagePreviewData = data // show preview even if save failed
+                        imagePreviewData = data
                     }
                 }
             }
@@ -268,10 +267,12 @@ struct RecipeForm: View {
             Button(
                 role: .destructive,
                 action: {
-                    do {
-                        try delete(recipe: recipe)
-                    } catch {
-                        self.error = error
+                    Task {
+                        do {
+                            try delete(recipe: recipe)
+                        } catch {
+                            await MainActor.run { self.error = error }
+                        }
                     }
                 },
                 label: {
@@ -289,7 +290,7 @@ struct RecipeForm: View {
             fatalError("Delete unavailable in add mode")
         }
         try persistenceService.delete(recipe)
-        dismiss()
+        Task { await MainActor.run { dismiss() } }
     }
     
     func deleteIngredients(offsets: IndexSet) {
@@ -300,36 +301,38 @@ struct RecipeForm: View {
     
     func save() {
         let category = selectedCategory
-        
-        do {
-            switch mode {
-            case .add:
-                try persistenceService.addRecipe(
-                    name: name,
-                    summary: summary,
-                    category: category,
-                    serving: serving,
-                    time: time,
-                    ingredients: ingredients,
-                    instructions: instructions,
-                    imageData: nil
-                )
-            case .edit(let recipe):
-                try persistenceService.updateRecipe(
-                    id: recipe.id,
-                    name: name,
-                    summary: summary,
-                    category: category,
-                    serving: serving,
-                    time: time,
-                    ingredients: ingredients,
-                    instructions: instructions,
-                    imageData: nil
-                )
+        Task {
+            do {
+                switch mode {
+                case .add:
+                    _ = try await persistenceService.addRecipe(
+                        name: name,
+                        summary: summary,
+                        category: category,
+                        serving: serving,
+                        time: time,
+                        ingredients: ingredients,
+                        instructions: instructions,
+                        imageData: imagePreviewData
+                    )
+                case .edit(let recipe):
+                    _ = try await persistenceService.updateRecipe(
+                        id: recipe.id,
+                        name: name,
+                        summary: summary,
+                        category: category,
+                        serving: serving,
+                        time: time,
+                        ingredients: ingredients,
+                        instructions: instructions,
+                        imageData: imagePreviewData
+                    )
+                }
+                await MainActor.run { dismiss() }
+            } catch {
+                await MainActor.run { self.error = error }
             }
-            dismiss()
-        } catch {
-            self.error = error
         }
     }
 }
+

@@ -20,11 +20,11 @@ struct MockDataLoader {
     }
     
     // Convenience overload that uses injected storage
-    func importMockData(context: ModelContext) {
-        importMockData(context: context, storage: storage)
+    func importMockData(context: ModelContext) async {
+        await importMockData(context: context, storage: storage)
     }
     
-    func importMockData(context: ModelContext, storage: Storage) {
+    func importMockData(context: ModelContext, storage: Storage) async {
         print("importMockData started!!!")
         // If there are already recipes, exit.
         let existing = try? context.fetch(FetchDescriptor<Recipe>())
@@ -48,7 +48,7 @@ struct MockDataLoader {
         for mockCategory in mockCategories {
             let cat = category(for: mockCategory.name)
             for mockRecipe in mockCategory.recipes {
-                _ = createRecipe(from: mockRecipe, in: cat)
+                _ = await createRecipe(from: mockRecipe, in: cat)
             }
         }
         
@@ -103,9 +103,9 @@ struct MockDataLoader {
         }
         
         // Create a Recipe with a Category binding
-        func createRecipe(from mockRecipe: MockRecipe, in category: Category?) -> Recipe {
+        func createRecipe(from mockRecipe: MockRecipe, in category: Category?) async -> Recipe {
             // Convert imageData (if in mocks Data?) to a file name string
-            let imageFileName: String? = saveMockImage(mockRecipe.imageData)
+            let imageFileName: String? = await saveMockImage(mockRecipe.imageData)
             
             // First we create a recipe without ingredients to have an instance for relationships
             let recipe = Recipe(
@@ -127,11 +127,10 @@ struct MockDataLoader {
         }
         
         // Image saving function
-        func saveMockImage(_ data: Data?) -> String? {
+        func saveMockImage(_ data: Data?) async -> String? {
             guard let data else { return nil }
-            let fileName = try? ImageStorage.shared.save(imageData: data, id: UUID())
+            let fileName = try? await ImageStorage.shared.save(imageData: data, id: UUID())
             return fileName
         }
     }
 }
-

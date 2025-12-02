@@ -124,11 +124,14 @@ struct IngredientsView: View {
     // MARK: - Data
     
     private func delete(ingredient: Ingredient) {
-        do {
-            try persistenceService.deleteIngredient(name: ingredient.name)
-            dismiss()
-        } catch {
-            self.error = error
+        Task {
+            do {
+                try persistenceService.deleteIngredient(name: ingredient.name)
+                await MainActor.run { dismiss() }
+            } catch {
+                await MainActor.run { self.error = error }
+            }
         }
     }
 }
+
