@@ -10,46 +10,95 @@ struct IngredientsView: View {
         self.selection = selection
     }
     
-    @Environment(\.modelContext) private var modelContext
     @Query private var ingredients: [Ingredient]
-    @Environment(\.dismiss) private var dismiss
     @State private var query = ""
-    @State private var error: Error?
-    private var persistenceService: PersistenceService { PersistenceService(modelContext: modelContext) }
+    @State private var sortOrder: [SortDescriptor<Ingredient>] = [SortDescriptor(\Ingredient.name)]
     
     // MARK: - Body
     
     var body: some View {
         NavigationStack {
-            content
-                .navigationTitle("Ingredients")
-                .toolbar {
-                    if !ingredients.isEmpty {
-                        NavigationLink(value: IngredientForm.Mode.add) {
-                            Label("Add", systemImage: "plus")
-                        }
-                    }
-                }
-                .navigationDestination(for: IngredientForm.Mode.self) { mode in
-                    IngredientForm(mode: mode)
-                }
+            IngredientsListView(query: query, sortOrder: sortOrder, selection: selection)
+                .searchable(text: $query)
+                .toolbar {sortOptions}
         }
     }
     
-    // MARK: - Views
+    @ToolbarContentBuilder
+    var sortOptions: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                Picker("Sort", selection: $sortOrder) {
+                    Text("Ingredient (A–Z)")
+                        .tag([SortDescriptor(\Ingredient.name, order: .forward)])
+                    Text("Ingredient (Z–A)")
+                        .tag([SortDescriptor(\Ingredient.name, order: .reverse)])
+                    
+                }
+            }
+            .pickerStyle(.inline)
+        }
+    }
+}
+
+ // MARK: - IngredientsListView with #Predicate and @Query
+
+private struct IngredientsListView: View {
+    typealias Selection = (Ingredient) -> Void
+    
+    let query: String
+    let sortOrder: [SortDescriptor<Ingredient>]
+    let selection: Selection?
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Query private var ingredients: [Ingredient]
+    @State private var error: Error?
+    private var persistenceService: PersistenceService { PersistenceService(modelContext: modelContext) }
+    
+    
+    init(query: String, sortOrder: [SortDescriptor<Ingredient>], selection: Selection? = nil) {
+        self.query = query
+        self.sortOrder = sortOrder
+        self.selection = selection
+        
+        // Build a #Predicate based on the current query. If empty, match all.
+        let predicate: Predicate<Ingredient>
+        if query.isEmpty {
+            predicate = #Predicate<Ingredient> { _ in true }
+        } else {
+            let q = query
+            predicate = #Predicate<Ingredient> { ingredient in
+                ingredient.name.localizedStandardContains(q)
+            }
+        }
+        
+        // Initialize the @Query wrapper with filter and sort so filtering/sorting happen in the store.
+        self._ingredients = Query(filter: predicate, sort: sortOrder)
+    }
+    
+    var body: some View {
+        content
+            .navigationTitle("Ingredients")
+            .toolbar {
+                if !ingredients.isEmpty {
+                    NavigationLink(value: IngredientForm.Mode.add) {
+                        Label("Add", systemImage: "plus")
+                    }
+                }
+            }
+            .navigationDestination(for: IngredientForm.Mode.self) { mode in
+                IngredientForm(mode: mode)
+            }
+    }
+    
+    // MARK: - View
     
     @ViewBuilder
     private var content: some View {
         if ingredients.isEmpty {
             empty
         } else {
-            list(for: ingredients.filter {
-                if query.isEmpty {
-                    return true
-                } else {
-                    return $0.name.localizedStandardContains(query)
-                }
-            })
+            list(for: ingredients)
         }
     }
     
@@ -93,7 +142,6 @@ struct IngredientsView: View {
                 }
             }
         }
-        .searchable(text: $query)
         .listStyle(.plain)
     }
     
@@ -127,11 +175,10 @@ struct IngredientsView: View {
         Task {
             do {
                 try persistenceService.deleteIngredient(name: ingredient.name)
-                await MainActor.run { dismiss() }
             } catch {
-                await MainActor.run { self.error = error }
+                self.error = error
             }
         }
+        
     }
 }
-

@@ -33,20 +33,23 @@ struct RecipesView: View {
         ToolbarItem(placement: .topBarLeading) {
             Menu("Sort", systemImage: "arrow.up.arrow.down") {
                 Picker("Sort", selection: $sortOrder) {
-                    Text("Name")
-                        .tag(SortDescriptor(\Recipe.name))
+                    Text("Name (A–Z)")
+                        .tag(SortDescriptor<Recipe>(\.name, order: .forward))
+                    
+                    Text("Name (Z–A)")
+                        .tag(SortDescriptor<Recipe>(\.name, order: .reverse))
                     
                     Text("Serving (low to high)")
-                        .tag(SortDescriptor(\Recipe.serving, order: .forward))
+                        .tag(SortDescriptor<Recipe>(\.serving, order: .forward))
                     
                     Text("Serving (high to low)")
-                        .tag(SortDescriptor(\Recipe.serving, order: .reverse))
+                        .tag(SortDescriptor<Recipe>(\.serving, order: .reverse))
                     
                     Text("Time (short to long)")
-                        .tag(SortDescriptor(\Recipe.time, order: .forward))
+                        .tag(SortDescriptor<Recipe>(\.time, order: .forward))
                     
                     Text("Time (long to short)")
-                        .tag(SortDescriptor(\Recipe.time, order: .reverse))
+                        .tag(SortDescriptor<Recipe>(\.time, order: .reverse))
                 }
             }
             .pickerStyle(.inline)
