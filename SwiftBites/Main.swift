@@ -22,6 +22,11 @@ struct ContentView: View {
                 .tabItem {
                     Label("Ingredients", systemImage: "carrot")
                 }
+            
+            ShopingListView()
+                .tabItem {
+                    Label("Shoping List", systemImage: "basket")
+                }
         }
         .onAppear {
             // Use the commented code to import mock data from storage.

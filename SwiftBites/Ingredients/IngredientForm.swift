@@ -13,15 +13,18 @@ struct IngredientForm: View {
         switch mode {
         case .add:
             _name = .init(initialValue: "")
+            _isAvailable = .init(initialValue: true)
             title = "Add Ingredient"
         case .edit(let ingredient):
             _name = .init(initialValue: ingredient.name)
+            _isAvailable = .init(initialValue: ingredient.isAvailable)
             title = "Edit \(ingredient.name)"
         }
     }
     
     private let title: String
     @State private var name: String
+    @State private var isAvailable: Bool
     @State private var error: Error?
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -35,6 +38,9 @@ struct IngredientForm: View {
             Section {
                 TextField("Name", text: $name)
                     .focused($isNameFocused)
+                Toggle(isOn: $isAvailable) {
+                        Text("Inredient is available")
+                    }
             }
             if case .edit(let ingredient) = mode {
                 Button(

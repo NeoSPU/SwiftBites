@@ -29,8 +29,8 @@
 		1D64682F2EDB3B43001A86D5 /* MockDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D64682C2EDB3B43001A86D5 /* MockDataLoader.swift */; };
 		1D6468302EDB3B43001A86D5 /* ImageStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D64682B2EDB3B43001A86D5 /* ImageStorage.swift */; };
 		1D64687A2EDCBBF4001A86D5 /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6468792EDCBBE3001A86D5 /* PersistenceService.swift */; };
-		1D64688C2EDF621B001A86D5 /* ShopingListSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D64688B2EDF620A001A86D5 /* ShopingListSection.swift */; };
 		1D64688E2EDF6227001A86D5 /* ShopingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D64688D2EDF621F001A86D5 /* ShopingListView.swift */; };
+		1D64689E2EE05104001A86D5 /* AvailableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D64689D2EE050F6001A86D5 /* AvailableButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -68,8 +68,8 @@
 		1D64682C2EDB3B43001A86D5 /* MockDataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataLoader.swift; sourceTree = "<group>"; };
 		1D6468792EDCBBE3001A86D5 /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceService.swift; sourceTree = "<group>"; };
 		1D64687F2EDF5C99001A86D5 /* SwiftBitesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftBitesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1D64688B2EDF620A001A86D5 /* ShopingListSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopingListSection.swift; sourceTree = "<group>"; };
 		1D64688D2EDF621F001A86D5 /* ShopingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopingListView.swift; sourceTree = "<group>"; };
+		1D64689D2EE050F6001A86D5 /* AvailableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvailableButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -163,6 +163,7 @@
 		07B772002AFC1D2E007BF4B0 /* Ingredients */ = {
 			isa = PBXGroup;
 			children = (
+				1D64689D2EE050F6001A86D5 /* AvailableButton.swift */,
 				07F6DE3E2B04321F004AD929 /* IngredientForm.swift */,
 				078C79692B015772009744FD /* IngredientsView.swift */,
 			);
@@ -193,7 +194,6 @@
 		1D64688A2EDF61D1001A86D5 /* Shopping List */ = {
 			isa = PBXGroup;
 			children = (
-				1D64688B2EDF620A001A86D5 /* ShopingListSection.swift */,
 				1D64688D2EDF621F001A86D5 /* ShopingListView.swift */,
 			);
 			path = "Shopping List";
@@ -310,7 +310,6 @@
 				07A207402AFAF5100048B7EA /* Models.swift in Sources */,
 				1D64682F2EDB3B43001A86D5 /* MockDataLoader.swift in Sources */,
 				1D6468302EDB3B43001A86D5 /* ImageStorage.swift in Sources */,
-				1D64688C2EDF621B001A86D5 /* ShopingListSection.swift in Sources */,
 				1D64687A2EDCBBF4001A86D5 /* PersistenceService.swift in Sources */,
 				0719D4342B0590B500B1A4E3 /* RecipesView.swift in Sources */,
 				07CF2F332B0A1D4C003B83AD /* Utils.swift in Sources */,
@@ -323,6 +322,7 @@
 				0719D4332B0590B500B1A4E3 /* RecipeForm.swift in Sources */,
 				1D64688E2EDF6227001A86D5 /* ShopingListView.swift in Sources */,
 				07C52B802B0A90F000DCBB13 /* CategorySection.swift in Sources */,
+				1D64689E2EE05104001A86D5 /* AvailableButton.swift in Sources */,
 				07AD351C2B0EC75400A0FDF5 /* Storage.swift in Sources */,
 				07A2073C2AFAF5100048B7EA /* App.swift in Sources */,
 				078C796A2B015772009744FD /* IngredientsView.swift in Sources */,

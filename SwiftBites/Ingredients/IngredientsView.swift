@@ -145,20 +145,40 @@ private struct IngredientsListView: View {
     
     @ViewBuilder
     private func row(for ingredient: Ingredient) -> some View {
-        if let selection {
-            Button(
-                action: {
-                    selection(ingredient)
-                    dismiss()
-                },
-                label: {
-                    title(for: ingredient)
+        HStack(spacing: 12) {
+            AvailableButton(isAvailable: Binding(
+                get: { ingredient.isAvailable },
+                set: { newValue in
+                    ingredient.isAvailable = newValue
+                    // Persist immediately via model context
+                    do {
+                        try modelContext.save()
+                    } catch {
+                        self.error = error
+                    }
                 }
-            )
-        } else {
-            NavigationLink(value: IngredientForm.Mode.edit(ingredient)) {
-                title(for: ingredient)
+            ))
+            
+            if let selection {
+                Button(
+                    action: {
+                        selection(ingredient)
+                        dismiss()
+                    },
+                    label: {
+                        title(for: ingredient)
+                            .contentShape(Rectangle())
+                    }
+                )
+                .buttonStyle(.plain)
+            } else {
+                NavigationLink(value: IngredientForm.Mode.edit(ingredient)) {
+                    title(for: ingredient)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
+            Spacer(minLength: 0)
         }
     }
     
@@ -180,3 +200,4 @@ private struct IngredientsListView: View {
         
     }
 }
+
