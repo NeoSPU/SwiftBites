@@ -10,9 +10,8 @@ struct IngredientsView: View {
         self.selection = selection
     }
     
-    @Query private var ingredients: [Ingredient]
     @State private var query = ""
-    @State private var sortOrder: [SortDescriptor<Ingredient>] = [SortDescriptor(\Ingredient.name)]
+    @State private var sortOrder: SortDescriptor<Ingredient> = SortDescriptor(\Ingredient.name)
     
     // MARK: - Body
     
@@ -30,9 +29,9 @@ struct IngredientsView: View {
             Menu("Sort", systemImage: "arrow.up.arrow.down") {
                 Picker("Sort", selection: $sortOrder) {
                     Text("Ingredient (A–Z)")
-                        .tag([SortDescriptor<Ingredient>(\.name, order: .forward)])
+                        .tag(SortDescriptor<Ingredient>(\.name, order: .forward))
                     Text("Ingredient (Z–A)")
-                        .tag([SortDescriptor<Ingredient>(\.name, order: .reverse)])
+                        .tag(SortDescriptor<Ingredient>(\.name, order: .reverse))
                 }
             }
             .pickerStyle(.inline)
@@ -46,7 +45,7 @@ private struct IngredientsListView: View {
     typealias Selection = (Ingredient) -> Void
     
     let query: String
-    let sortOrder: [SortDescriptor<Ingredient>]
+    let sortOrder: SortDescriptor<Ingredient>
     let selection: Selection?
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -55,7 +54,7 @@ private struct IngredientsListView: View {
     private var persistenceService: PersistenceService { PersistenceService(modelContext: modelContext) }
     
     
-    init(query: String, sortOrder: [SortDescriptor<Ingredient>], selection: Selection? = nil) {
+    init(query: String, sortOrder: SortDescriptor<Ingredient>, selection: Selection? = nil) {
         self.query = query
         self.sortOrder = sortOrder
         self.selection = selection
@@ -72,7 +71,7 @@ private struct IngredientsListView: View {
         }
         
         // Initialize the @Query wrapper with filter and sort so filtering/sorting happen in the store.
-        self._ingredients = Query(filter: predicate, sort: sortOrder)
+        self._ingredients = Query(filter: predicate, sort: [sortOrder])
     }
     
     var body: some View {
