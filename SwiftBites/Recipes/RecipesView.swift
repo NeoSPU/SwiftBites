@@ -10,19 +10,8 @@ struct RecipesView: View {
     var body: some View {
         NavigationStack {
             RecipesListView(query: query, sortOrder: sortOrder)
-                .navigationTitle("Recipes")
-                .toolbar {
-                    sortOptions
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink(value: RecipeForm.Mode.add) {
-                            Label("Add", systemImage: "plus")
-                        }
-                    }
-                }
-                .navigationDestination(for: RecipeForm.Mode.self) { mode in
-                    RecipeForm(mode: mode)
-                }
                 .searchable(text: $query)
+                .toolbar {sortOptions}
         }
     }
     
@@ -86,22 +75,67 @@ private struct RecipesListView: View {
     }
     
     var body: some View {
-        if recipes.isEmpty {
-            ContentUnavailableView(
-                label: { Label("No Recipes", systemImage: "list.clipboard") },
-                description: { Text("Recipes you add will appear here.") },
-                actions: {
-                    NavigationLink("Add Recipe", value: RecipeForm.Mode.add)
-                        .buttonBorderShape(.roundedRectangle)
-                        .buttonStyle(.borderedProminent)
+        content
+          .navigationTitle("Recipes")
+          .toolbar {
+            if !recipes.isEmpty {
+              ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(value: RecipeForm.Mode.add) {
+                  Label("Add", systemImage: "plus")
                 }
-            )
-        } else {
-            ScrollView(.vertical) {
-                LazyVStack(spacing: 10) {
-                    ForEach(recipes, content: RecipeCell.init)
-                }
+              }
             }
-        }
+          }
+          .navigationDestination(for: RecipeForm.Mode.self) { mode in
+            RecipeForm(mode: mode)
+          }
     }
+    
+    // MARK: - View
+    
+    @ViewBuilder
+    private var content: some View {
+      if recipes.isEmpty {
+        empty
+      } else {
+        list(for: recipes)
+      }
+    }
+
+    var empty: some View {
+      ContentUnavailableView(
+        label: {
+          Label("No Recipes", systemImage: "list.clipboard")
+        },
+        description: {
+          Text("Recipes you add will appear here.")
+        },
+        actions: {
+          NavigationLink("Add Recipe", value: RecipeForm.Mode.add)
+            .buttonBorderShape(.roundedRectangle)
+            .buttonStyle(.borderedProminent)
+        }
+      )
+    }
+
+    private var noResults: some View {
+      ContentUnavailableView(
+        label: {
+          Text("Couldn't find \"\(query)\"")
+        }
+      )
+    }
+
+    private func list(for recipes: [Recipe]) -> some View {
+      ScrollView(.vertical) {
+        if recipes.isEmpty {
+          noResults
+        } else {
+          LazyVStack(spacing: 10) {
+            ForEach(recipes, content: RecipeCell.init)
+          }
+        }
+      }
+    }
+    
 }

@@ -30,10 +30,9 @@ struct IngredientsView: View {
             Menu("Sort", systemImage: "arrow.up.arrow.down") {
                 Picker("Sort", selection: $sortOrder) {
                     Text("Ingredient (A–Z)")
-                        .tag([SortDescriptor(\Ingredient.name, order: .forward)])
+                        .tag([SortDescriptor<Ingredient>(\.name, order: .forward)])
                     Text("Ingredient (Z–A)")
-                        .tag([SortDescriptor(\Ingredient.name, order: .reverse)])
-                    
+                        .tag([SortDescriptor<Ingredient>(\.name, order: .reverse)])
                 }
             }
             .pickerStyle(.inline)
